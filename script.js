@@ -99,19 +99,70 @@ async function handleFormSubmit(e) {
         submitBtn.disabled = false;
     }
 }
+async function checkAvailability() {
+    try {
+        const response = await fetch(GAS_URL);
+        const data = await response.json();
+        
+        const selectedDate = document.querySelector('input[name="date"]:checked')?.value;
+        const selectedTimes = Array.from(document.querySelectorAll('input[name="time"]:checked')).map(cb => cb.value);
 
+        if (!selectedDate || selectedTimes.length === 0) return;
+
+        document.querySelectorAll('input[name="cats"]').forEach(input => {
+            const catName = input.value;
+            let isAvailable = true;
+
+            // 第一關：檢查班表 (Schedule)
+            const daySchedule = data.schedule[selectedDate] || {};
+            const catWorkTimes = daySchedule[catName] || [];
+            // 必須選中的所有時段該貓咪都有上班 (顯示「可預約」)
+            const hasWork = selectedTimes.every(t => catWorkTimes.includes(t));
+            if (!hasWork) isAvailable = false;
+
+            // 第二關：檢查預約紀錄 (Bookings)
+            data.bookings.forEach(b => {
+                if (b.date === selectedDate) {
+                    const bTimes = b.time.split(', ');
+                    const bCats = b.cats.split(', ');
+                    // 如果選中的時段中，有任何一個時段這隻貓已經被訂了
+                    const isBooked = selectedTimes.some(t => bTimes.includes(t)) && bCats.includes(catName);
+                    if (isBooked) isAvailable = false;
+                }
+            });
+
+            // 執行鎖定與變灰
+            input.disabled = !isAvailable;
+            if (!isAvailable) {
+                input.checked = false;
+                input.parentElement.classList.add('disabled-cat');
+            } else {
+                input.parentElement.classList.remove('disabled-cat');
+            }
+        });
+        calculateTotal();
+    } catch (error) {
+        console.error("讀取狀態失敗:", error);
+    }
+}
 // ==========================================
 // 5. 初始化與事件綁定
 // ==========================================
 function init() {
-    // 監聽時段
+    // 監聽日期切換 (新增)
+    document.querySelectorAll('input[name="date"]').forEach(radio => {
+        radio.addEventListener('change', checkAvailability);
+    });
+
+    // 監聽時段勾選 (修改：原本只有 calculateTotal，現在要加 checkAvailability)
     document.querySelectorAll('input[name="time"]').forEach(cb => {
         cb.addEventListener('change', () => {
+            checkAvailability(); // 新增這行
             calculateTotal();
         });
     });
 
-    // 監聽貓咪
+    // 監聽貓咪 (維持原樣)
     document.querySelectorAll('input[name="cats"]').forEach(cb => {
         cb.addEventListener('change', function() {
             const checkedCount = document.querySelectorAll('input[name="cats"]:checked').length;
@@ -123,12 +174,11 @@ function init() {
         });
     });
 
-    // 監聽提交
     const form = document.getElementById('bookingForm');
-    if (form) {
-        form.addEventListener('submit', handleFormSubmit);
-    }
-    // 初始執行
+    if (form) { form.addEventListener('submit', handleFormSubmit); }
+    
+    // 頁面開啟時先跑一次檢查
+    checkAvailability(); 
     calculateTotal();
 }
 
