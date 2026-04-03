@@ -3,7 +3,7 @@
 // ==========================================
 const maxCats = 3; 
 const pricePerCatPerPeriod = 50000;
-const GAS_URL = "https://script.google.com/macros/s/AKfycbwTdX3BGRk4KtlSRdHfFxMTSjYcYS-kuSMWftRpO726uTI1srZjkz5L2w9okBlD7OwmAQ/exec";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzV6P53CQYb4EobtaWTpkthUGXUgTvATD4QXLvRxIwThlGjIxDHDnWR0y-cEhlgMDeDxw/exec";
 
 // ==========================================
 // 2. 自動計算金額邏輯
@@ -101,14 +101,8 @@ async function handleFormSubmit(e) {
 }
 async function checkAvailability() {
     try {
-        const response = await fetch(GAS_URL, {
-    method: 'GET',
-    mode: 'cors', // 顯式要求 CORS 模式
-    headers: {
-        'Content-Type': 'application/json'
-    }
-});
-        const data = await response.json();
+      const response = await fetch(GAS_URL); 
+const data = await response.json();
         
         const selectedDate = document.querySelector('input[name="date"]:checked')?.value;
         const selectedTimes = Array.from(document.querySelectorAll('input[name="time"]:checked')).map(cb => cb.value);
