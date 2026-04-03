@@ -110,23 +110,21 @@
             <textarea id="note" name="note" rows="3" placeholder="例如出席人數，聚會目的等"></textarea>
         </div>
 
-<div class="total-price-container">
-    <div class="price-row">
-        <span>已選時段數：</span>
-        <span id="display-periods">0</span>
+<form id="bookingForm">
+    
+    <div class="total-price-container">
+        <div class="price-row">已選時段數：<span id="display-periods">0</span></div>
+        <div class="price-row">指名貓咪數：<span id="display-cats">0</span></div>
+        <hr>
+        <div class="price-total">
+            <span>預計總金額：</span>
+            <span id="total-amount">0</span> Gil
+        </div>
     </div>
-    <div class="price-row">
-        <span>指名貓咪數：</span>
-        <span id="display-cats">0</span>
-    </div>
-    <hr>
-    <div class="price-total">
-        <span>預計總金額：</span>
-        <span id="total-amount">0</span> Gil
-    </div>
-</div>
-        <button type="submit" id="submitBtn">提交預約</button>
-    </form>
+
+    <button type="submit" id="submitBtn">提交預約</button>
+
+</form>
 </div>
 
     <script src="script.js"></script>
