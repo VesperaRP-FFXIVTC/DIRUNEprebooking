@@ -100,9 +100,13 @@ async function handleFormSubmit(e) {
     }
 }
 async function checkAvailability() {
+    const loader = document.getElementById('loading-overlay');
+    // 1. 開始抓資料前，先顯示轉圈圈
+    if (loader) loader.style.display = 'flex'; 
+
     try {
-      const response = await fetch(GAS_URL); 
-const data = await response.json();
+        const response = await fetch(GAS_URL);
+        const data = await response.json();
         
         const selectedDate = document.querySelector('input[name="date"]:checked')?.value;
         const selectedTimes = Array.from(document.querySelectorAll('input[name="time"]:checked')).map(cb => cb.value);
@@ -113,25 +117,20 @@ const data = await response.json();
             const catName = input.value;
             let isAvailable = true;
 
-            // 第一關：檢查班表 (Schedule)
             const daySchedule = data.schedule[selectedDate] || {};
             const catWorkTimes = daySchedule[catName] || [];
-            // 必須選中的所有時段該貓咪都有上班 (顯示「可預約」)
             const hasWork = selectedTimes.every(t => catWorkTimes.includes(t));
             if (!hasWork) isAvailable = false;
 
-            // 第二關：檢查預約紀錄 (Bookings)
             data.bookings.forEach(b => {
                 if (b.date === selectedDate) {
                     const bTimes = b.time.split(', ');
                     const bCats = b.cats.split(', ');
-                    // 如果選中的時段中，有任何一個時段這隻貓已經被訂了
                     const isBooked = selectedTimes.some(t => bTimes.includes(t)) && bCats.includes(catName);
                     if (isBooked) isAvailable = false;
                 }
             });
 
-            // 執行鎖定與變灰
             input.disabled = !isAvailable;
             if (!isAvailable) {
                 input.checked = false;
@@ -141,8 +140,18 @@ const data = await response.json();
             }
         });
         calculateTotal();
+
     } catch (error) {
         console.error("讀取狀態失敗:", error);
+    } finally {
+        // 2. 最關鍵的一步：無論成功或失敗，最後一定要關掉轉圈圈！
+        if (loader) {
+            loader.style.opacity = '0';
+            setTimeout(() => { 
+                loader.style.display = 'none'; 
+                loader.style.opacity = '1'; 
+            }, 500);
+        }
     }
 }
 // ==========================================
