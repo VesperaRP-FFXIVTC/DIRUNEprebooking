@@ -101,7 +101,13 @@ async function handleFormSubmit(e) {
 }
 async function checkAvailability() {
     try {
-        const response = await fetch(GAS_URL);
+        const response = await fetch(GAS_URL, {
+    method: 'GET',
+    mode: 'cors', // 顯式要求 CORS 模式
+    headers: {
+        'Content-Type': 'application/json'
+    }
+});
         const data = await response.json();
         
         const selectedDate = document.querySelector('input[name="date"]:checked')?.value;
