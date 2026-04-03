@@ -4,7 +4,8 @@
 const maxCats = 3; 
 const pricePerCatPerPeriod = 50000;
 const GAS_URL = "https://script.google.com/macros/s/AKfycbzV6P53CQYb4EobtaWTpkthUGXUgTvATD4QXLvRxIwThlGjIxDHDnWR0y-cEhlgMDeDxw/exec";
-
+// 1. 新增全域變數存放抓回來的資料
+let cachedData = null;
 // ==========================================
 // 2. 自動計算金額邏輯
 // ==========================================
@@ -91,6 +92,7 @@ async function handleFormSubmit(e) {
         });
         
         alert('預約成功！資料已送出。');
+        cachedData = null; // 清除舊資料，迫使下次檢查時重新向 Google 抓取
         submitBtn.innerText = "提交預約";
         submitBtn.disabled = false;
     } catch (error) {
@@ -101,58 +103,61 @@ async function handleFormSubmit(e) {
 }
 async function checkAvailability() {
     const loader = document.getElementById('loading-overlay');
-    // 1. 開始抓資料前，先顯示轉圈圈
-    if (loader) loader.style.display = 'flex'; 
-
-    try {
-        const response = await fetch(GAS_URL);
-        const data = await response.json();
-        
-        const selectedDate = document.querySelector('input[name="date"]:checked')?.value;
-        const selectedTimes = Array.from(document.querySelectorAll('input[name="time"]:checked')).map(cb => cb.value);
-
-        if (!selectedDate || selectedTimes.length === 0) return;
-
-        document.querySelectorAll('input[name="cats"]').forEach(input => {
-            const catName = input.value;
-            let isAvailable = true;
-
-            const daySchedule = data.schedule[selectedDate] || {};
-            const catWorkTimes = daySchedule[catName] || [];
-            const hasWork = selectedTimes.every(t => catWorkTimes.includes(t));
-            if (!hasWork) isAvailable = false;
-
-            data.bookings.forEach(b => {
-                if (b.date === selectedDate) {
-                    const bTimes = b.time.split(', ');
-                    const bCats = b.cats.split(', ');
-                    const isBooked = selectedTimes.some(t => bTimes.includes(t)) && bCats.includes(catName);
-                    if (isBooked) isAvailable = false;
-                }
-            });
-
-            input.disabled = !isAvailable;
-            if (!isAvailable) {
-                input.checked = false;
-                input.parentElement.classList.add('disabled-cat');
-            } else {
-                input.parentElement.classList.remove('disabled-cat');
+    
+    // 如果還沒有資料，就去抓一次 (這就是那「唯一一次」的轉圈圈)
+    if (!cachedData) {
+        if (loader) loader.style.display = 'flex';
+        try {
+            const response = await fetch(GAS_URL);
+            cachedData = await response.json();
+            console.log("資料已成功緩存:", cachedData);
+        } catch (error) {
+            console.error("抓取初始資料失敗:", error);
+            if (loader) loader.style.display = 'none';
+            return;
+        } finally {
+            if (loader) {
+                loader.style.opacity = '0';
+                setTimeout(() => { loader.style.display = 'none'; loader.style.opacity = '1'; }, 500);
             }
-        });
-        calculateTotal();
-
-    } catch (error) {
-        console.error("讀取狀態失敗:", error);
-    } finally {
-        // 2. 最關鍵的一步：無論成功或失敗，最後一定要關掉轉圈圈！
-        if (loader) {
-            loader.style.opacity = '0';
-            setTimeout(() => { 
-                loader.style.display = 'none'; 
-                loader.style.opacity = '1'; 
-            }, 500);
         }
     }
+
+    // --- 以下開始是「本地運算」，速度極快，不需要轉圈圈 ---
+    const selectedDate = document.querySelector('input[name="date"]:checked')?.value;
+    const selectedTimes = Array.from(document.querySelectorAll('input[name="time"]:checked')).map(cb => cb.value);
+
+    if (!selectedDate || selectedTimes.length === 0) return;
+
+    document.querySelectorAll('input[name="cats"]').forEach(input => {
+        const catName = input.value;
+        let isAvailable = true;
+
+        // 從 cachedData 裡拿資料比對，不再 fetch
+        const daySchedule = cachedData.schedule[selectedDate] || {};
+        const catWorkTimes = daySchedule[catName] || [];
+        const hasWork = selectedTimes.every(t => catWorkTimes.includes(t));
+        if (!hasWork) isAvailable = false;
+
+        cachedData.bookings.forEach(b => {
+            if (b.date === selectedDate) {
+                const bTimes = b.time.split(', ');
+                const bCats = b.cats.split(', ');
+                const isBooked = selectedTimes.some(t => bTimes.includes(t)) && bCats.includes(catName);
+                if (isBooked) isAvailable = false;
+            }
+        });
+
+        // 更新 UI
+        input.disabled = !isAvailable;
+        if (!isAvailable) {
+            input.checked = false;
+            input.parentElement.classList.add('disabled-cat');
+        } else {
+            input.parentElement.classList.remove('disabled-cat');
+        }
+    });
+    calculateTotal();
 }
 // ==========================================
 // 5. 初始化與事件綁定
