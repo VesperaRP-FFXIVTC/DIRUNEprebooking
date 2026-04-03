@@ -32,30 +32,6 @@ function calculateTotal() {
 }
 
 // ==========================================
-// 3. 控制貓咪區塊的顯示與隱藏
-// ==========================================
-function toggleCatSection() {
-    const catSection = document.getElementById('cat-selection-section');
-    const selectedPeriods = document.querySelectorAll('input[name="time"]:checked').length;
-
-    if (catSection) {
-        if (selectedPeriods > 0) {
-            // 有選時段時顯示
-            catSection.style.display = 'block';
-            setTimeout(() => { catSection.style.opacity = '1'; }, 10);
-        } else {
-            // 沒選時段時隱藏並清空貓咪勾選
-            catSection.style.opacity = '0';
-            setTimeout(() => { 
-                catSection.style.display = 'none'; 
-                document.querySelectorAll('input[name="cats"]').forEach(c => c.checked = false);
-                calculateTotal();
-            }, 400);
-        }
-    }
-}
-
-// ==========================================
 // 4. 處理表單提交 (方案 A)
 // ==========================================
 async function handleFormSubmit(e) {
@@ -130,7 +106,6 @@ function init() {
     // 監聽時段
     document.querySelectorAll('input[name="time"]').forEach(cb => {
         cb.addEventListener('change', () => {
-            toggleCatSection();
             calculateTotal();
         });
     });
@@ -152,10 +127,8 @@ function init() {
     if (form) {
         form.addEventListener('submit', handleFormSubmit);
     }
-
     // 初始執行
     calculateTotal();
-    toggleCatSection();
 }
 
 window.onload = init;

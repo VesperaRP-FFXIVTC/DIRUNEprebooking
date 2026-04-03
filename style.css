@@ -353,3 +353,9 @@ input[type="text"]#contact-info:focus {
     border-color: #8d6e63;
     background-color: #fff;
 }
+/* 移除或註解掉關於隱藏的 transition，讓選單直接顯示 */
+#cat-selection-section {
+    display: block;
+    opacity: 1;
+    margin-top: 20px;
+}
