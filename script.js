@@ -74,6 +74,7 @@ async function handleFormSubmit(e) {
     submitBtn.disabled = true;
 
     const formData = new FormData();
+    formData.append('name', document.getElementById('name').value);
     formData.append('date', dateInput.value);
     formData.append('time', selectedTimes);
     formData.append('cats', selectedCats);
