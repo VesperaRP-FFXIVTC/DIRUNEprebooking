@@ -359,3 +359,39 @@ input[type="text"]#contact-info:focus {
     opacity: 1;
     margin-top: 20px;
 }
+.menu-container {
+    margin: 20px 0;
+    padding: 15px;
+    background-color: #fffaf5;
+    border: 1px solid #e8dec9;
+    border-radius: 15px;
+}
+
+.menu-title {
+    font-size: 14px;
+    color: #8d6e63;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.menu-image-wrapper {
+    cursor: zoom-in;
+    overflow: hidden;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.menu-image-wrapper img {
+    width: 100%;
+    transition: transform 0.3s ease;
+}
+
+.menu-image-wrapper:hover img {
+    transform: scale(1.05); /* 滑過時輕微放大，增加互動感 */
+}
+
+.menu-hint {
+    font-size: 11px;
+    color: #a68b6d;
+    margin-top: 8px;
+}

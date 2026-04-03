@@ -132,3 +132,36 @@ function init() {
 }
 
 window.onload = init;
+// 點擊圖片放大的功能
+document.getElementById('menuImage').addEventListener('click', function() {
+    // 建立一個黑色的背景遮罩
+    const overlay = document.createElement('div');
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100%';
+    overlay.style.height = '100%';
+    overlay.style.backgroundColor = 'rgba(0,0,0,0.8)';
+    overlay.style.display = 'flex';
+    overlay.style.justifyContent = 'center';
+    overlay.style.alignItems = 'center';
+    overlay.style.zIndex = '1000';
+    overlay.style.cursor = 'zoom-out';
+
+    // 建立放大的圖片
+    const fullImg = document.createElement('img');
+    fullImg.src = this.src;
+    fullImg.style.maxWidth = '90%';
+    fullImg.style.maxHeight = '90%';
+    fullImg.style.borderRadius = '10px';
+    fullImg.style.boxShadow = '0 0 20px rgba(0,0,0,0.5)';
+
+    // 將圖片放入遮罩，再將遮罩放入網頁
+    overlay.appendChild(fullImg);
+    document.body.appendChild(overlay);
+
+    // 點擊任何地方就關閉放大
+    overlay.addEventListener('click', function() {
+        document.body.removeChild(overlay);
+    });
+});
