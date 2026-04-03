@@ -104,13 +104,14 @@ async function handleFormSubmit(e) {
 async function checkAvailability() {
     const loader = document.getElementById('loading-overlay');
     
-    // 如果還沒有資料，就去抓一次 (這就是那「唯一一次」的轉圈圈)
+    // 如果還沒有資料，就去抓一次 (只轉這一次圈圈)
     if (!cachedData) {
         if (loader) loader.style.display = 'flex';
         try {
+            // 使用最簡單的 fetch，避免 CORS 預檢請求失敗
             const response = await fetch(GAS_URL);
             cachedData = await response.json();
-            console.log("資料已成功緩存:", cachedData);
+            console.log("資料讀取成功:", cachedData);
         } catch (error) {
             console.error("抓取初始資料失敗:", error);
             if (loader) loader.style.display = 'none';
@@ -118,37 +119,53 @@ async function checkAvailability() {
         } finally {
             if (loader) {
                 loader.style.opacity = '0';
-                setTimeout(() => { loader.style.display = 'none'; loader.style.opacity = '1'; }, 500);
+                setTimeout(() => { 
+                    loader.style.display = 'none'; 
+                    loader.style.opacity = '1'; 
+                }, 500);
             }
         }
     }
 
-    // --- 以下開始是「本地運算」，速度極快，不需要轉圈圈 ---
+    // --- 本地運算邏輯 ---
     const selectedDate = document.querySelector('input[name="date"]:checked')?.value;
     const selectedTimes = Array.from(document.querySelectorAll('input[name="time"]:checked')).map(cb => cb.value);
 
-    if (!selectedDate || selectedTimes.length === 0) return;
+    // 重點：如果沒有選時段，把所有貓咪「恢復可選」並離開
+    if (!selectedDate || selectedTimes.length === 0) {
+        document.querySelectorAll('input[name="cats"]').forEach(input => {
+            input.disabled = false;
+            input.parentElement.classList.remove('disabled-cat');
+        });
+        calculateTotal();
+        return;
+    }
 
+    // 開始檢查每一隻貓咪
     document.querySelectorAll('input[name="cats"]').forEach(input => {
         const catName = input.value;
         let isAvailable = true;
 
-        // 從 cachedData 裡拿資料比對，不再 fetch
+        // 1. 檢查班表 (Schedule)
         const daySchedule = cachedData.schedule[selectedDate] || {};
         const catWorkTimes = daySchedule[catName] || [];
-        const hasWork = selectedTimes.every(t => catWorkTimes.includes(t));
+        // 必須「所有選中的時段」這隻貓都有上班 (顯示可預約)
+        const hasWork = selectedTimes.every(t => catWorkTimes.includes(t.trim()));
+        
         if (!hasWork) isAvailable = false;
 
+        // 2. 檢查預約紀錄 (Bookings)
         cachedData.bookings.forEach(b => {
             if (b.date === selectedDate) {
-                const bTimes = b.time.split(', ');
-                const bCats = b.cats.split(', ');
-                const isBooked = selectedTimes.some(t => bTimes.includes(t)) && bCats.includes(catName);
+                const bTimes = b.time.split(',').map(s => s.trim());
+                const bCats = b.cats.split(',').map(s => s.trim());
+                // 如果選中的時段中有任何一個被訂了，且貓咪名字對上
+                const isBooked = selectedTimes.some(t => bTimes.includes(t.trim())) && bCats.includes(catName);
                 if (isBooked) isAvailable = false;
             }
         });
 
-        // 更新 UI
+        // 執行 UI 鎖定與變灰
         input.disabled = !isAvailable;
         if (!isAvailable) {
             input.checked = false;
