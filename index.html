@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DIRUNE 指名預約系統</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="booking-container">
+    <h1>DIRUNE 指名預約系統</h1>
+    <span class="subtitle">Reservation System</span>
+
+    <form id="bookingForm">
+        <div class="form-group">
+    <label for="name">角色名稱 / 暱稱</label>
+    <input type="text" id="name" name="name" required placeholder="例如：Inu@泰坦">
+</div>
+
+       <div class="form-group">
+    <label>預約日期 (本月開店日)</label>
+    <div class="checkbox-group">
+        <label class="checkbox-item">
+            <input type="radio" name="date" value="2026/04/03" required>
+            <span>2026/04/03 (五)</span>
+        </label>
+        <label class="checkbox-item">
+            <input type="radio" name="date" value="2026/04/04">
+            <span>2026/04/04 (六)</span>
+        </label>
+        <label class="checkbox-item">
+            <input type="radio" name="date" value="2026/04/05">
+            <span>2026/04/05 (日)</span>
+        </label>
+    </div>
+</div>
+
+       <div class="form-group">
+    <label>預約時段 (可多選)</label>
+    <p class="form-notice">
+        ※ 選擇時段後會顯示可指名的貓咪，若選項變灰代表該時段已被預約。
+    </p>
+    <div class="time-checkbox-group">
+        <label class="time-item">
+            <input type="checkbox" name="time" value="21:30 - 22:00">
+            <span>21:30 - 22:00</span>
+        </label>
+        <label class="time-item">
+            <input type="checkbox" name="time" value="22:00 - 22:30">
+            <span>22:00 - 22:30</span>
+        </label>
+        <label class="time-item">
+            <input type="checkbox" name="time" value="22:30 - 23:00">
+            <span>22:30 - 23:00</span>
+        </label>
+        <label class="time-item">
+            <input type="checkbox" name="time" value="23:00 - 23:30">
+            <span>23:00 - 23:30</span>
+        </label>
+        <label class="time-item">
+            <input type="checkbox" name="time" value="23:30 - 00:00">
+            <span>23:30 - 00:00</span>
+        </label>
+    </div>
+</div>
+<div id="cat-selection-section" style="display: none; opacity: 0; transition: 0.5s;">
+    <h3>你希望指名的貓咪</h3>
+    <div class="price-notice">
+        <p>※ 每位指名費用為 50,000 Gil（30分鐘），依人數計費。</p>
+        <p>※ 每筆預約最多指名 3 位（例：3 位（30分鐘）總計 150,000 Gil）。</p>
+    </div>
+
+    <div class="cat-checkbox-group">
+    <label class="cat-item"><input type="checkbox" name="cats" value="貓咪1"><span>埃斯咪</span></label>
+    <label class="cat-item"><input type="checkbox" name="cats" value="貓咪2"><span>堡</span></label>
+    <label class="cat-item"><input type="checkbox" name="cats" value="貓咪3"><span>蒼雨</span></label>
+    <label class="cat-item"><input type="checkbox" name="cats" value="貓咪4"><span>赤羽</span></label>
+    <label class="cat-item"><input type="checkbox" name="cats" value="貓咪5"><span>倒頭</span></label>
+    <label class="cat-item"><input type="checkbox" name="cats" value="貓咪6"><span>燈蒔</span></label>
+    <label class="cat-item"><input type="checkbox" name="cats" value="貓咪6"><span>Eating</span></label>
+    <label class="cat-item"><input type="checkbox" name="cats" value="貓咪6"><span>古·拉哈堤婭</span></label>
+    <label class="cat-item"><input type="checkbox" name="cats" value="貓咪6"><span>洛摩</span></label>
+    <label class="cat-item"><input type="checkbox" name="cats" value="貓咪6"><span>燎</span></label>
+    <label class="cat-item"><input type="checkbox" name="cats" value="貓咪6"><span>Misca</span></label>
+    <label class="cat-item"><input type="checkbox" name="cats" value="貓咪6"><span>默默</span></label>
+    <label class="cat-item"><input type="checkbox" name="cats" value="貓咪6"><span>貓糕</span></label>
+    <label class="cat-item"><input type="checkbox" name="cats" value="貓咪6"><span>Rayn</span></label>
+    <label class="cat-item"><input type="checkbox" name="cats" value="貓咪6"><span>蝦蝦</span></label>
+    <label class="cat-item"><input type="checkbox" name="cats" value="貓咪6"><span>維悟爾</span></label>
+<label class="cat-item disabled-cat">
+    <input type="checkbox" name="cats" value="(SP) Inu" disabled>
+    <span>(SP) Inu</span>
+</label>
+<label class="cat-item disabled-cat">
+    <input type="checkbox" name="cats" value="(SP) 伊萊諾斯" disabled>
+    <span>(SP) 伊萊諾斯</span>
+</label>
+    </div>
+   
+</div> <p style="text-align: right; color: #8d6e63; font-weight: bold; margin: 10px 0;">
+    預計指名費用：<span id="top-total">0</span> Gil
+</p>
+<div class="form-group">
+    <label for="contact-info">聯絡方法</label>
+    <input type="text" id="contact-info" name="contact" placeholder="例如：Discord ID 或 Threads 帳號" required>
+</div>
+        <div class="form-group">
+            <label for="note">備註 (如有)</label>
+            <textarea id="note" name="note" rows="3" placeholder="例如出席人數，聚會目的等"></textarea>
+        </div>
+
+<div class="total-price-container">
+    <div class="price-row">
+        <span>已選時段數：</span>
+        <span id="display-periods">0</span>
+    </div>
+    <div class="price-row">
+        <span>指名貓咪數：</span>
+        <span id="display-cats">0</span>
+    </div>
+    <hr>
+    <div class="price-total">
+        <span>預計總金額：</span>
+        <span id="total-amount">0</span> Gil
+    </div>
+</div>
+        <button type="submit" id="submitBtn">提交預約</button>
+    </form>
+</div>
+
+    <script src="script.js"></script>
+</body>
+</html>
