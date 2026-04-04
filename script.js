@@ -219,46 +219,58 @@ function init() {
     });
 
    // 處理貓咪勾選監聽
-    document.querySelectorAll('input[name="cats"]').forEach(cb => {
-        cb.addEventListener('change', function() {
-            const checkedCats = Array.from(document.querySelectorAll('input[name="cats"]:checked'));
-            const selectedTimes = document.querySelectorAll('input[name="time"]:checked');
+  document.querySelectorAll('input[name="cats"]').forEach(cb => {
+    cb.addEventListener('change', function() {
+        const checkedCats = Array.from(document.querySelectorAll('input[name="cats"]:checked'));
+        const selectedTimes = document.querySelectorAll('input[name="time"]:checked');
 
-            if (this.checked) {
-                // --- 【核心邏輯 A：維梧爾的排他性】 ---
-                if (this.value === "維梧爾") {
-                    // 如果選了維梧爾，就不能選其他貓
-                    if (checkedCats.length > 1) {
-                        this.checked = false;
-                        alert('【預約限制】\n由於「維梧爾」提供專屬速寫服務，指名他時無法同時指名其他貓咪。');
-                        return;
-                    }
-                    // 如果選了維梧爾，檢查時段是否超過一個
-                    if (selectedTimes.length > 1) {
-                        this.checked = false;
-                        alert('【預約限制】\n「維梧爾」的速寫預約僅限選擇「一個」時段。');
-                        return;
-                    }
-                } else {
-                    // 如果選的是其他貓，但目前已經勾選了維梧爾
-                    const hasVoguer = checkedCats.some(cat => cat.value === "維梧爾");
-                    if (hasVoguer) {
-                        this.checked = false;
-                        alert('【預約限制】\n當前已選擇「維梧爾」，無法再指名其他貓咪。');
-                        return;
-                    }
+        if (this.checked) {
+            // --- 1. 先執行限制檢查 ---
+            
+            // 如果選的是維梧爾
+            if (this.value === "維梧爾") {
+                // 檢查是否選了其他貓
+                if (checkedCats.length > 1) {
+                    this.checked = false;
+                    alert('【預約限制】\n由於「維梧爾」提供專屬速寫服務，指名他時無法同時指名其他貓咪。');
+                    calculateTotal();
+                    return; 
                 }
+                // 檢查是否選了超過一個時段
+                if (selectedTimes.length > 1) {
+                    this.checked = false;
+                    alert('【預約限制】\n「維梧爾」的速寫預約僅限選擇「一個」時段。');
+                    calculateTotal();
+                    return;
+                }
+                
+                // --- 2. 通過檢查後，立刻跳出提示彈窗 ---
+                alert('【專屬服務提示】\n您已選擇「維梧爾」。\n費用將包含：指名費 50,000 + 速寫服務 100,000 = 150,000 Gil / 每時段。');
 
+            } else {
+                // 如果選的是其他貓，檢查目前是否已選了維梧爾
+                const hasVoguer = checkedCats.some(cat => cat.value === "維梧爾");
+                if (hasVoguer) {
+                    this.checked = false;
+                    alert('【預約限制】\n當前已選擇「維梧爾」，無法再指名其他貓咪。');
+                    calculateTotal();
+                    return;
+                }
+                
                 // 原本的 3 隻貓限制
                 if (checkedCats.length > 3) {
                     this.checked = false;
                     alert('抱歉，每筆預約最多只能指名 3 位貓咪喔！');
+                    calculateTotal();
                     return;
                 }
             }
-            calculateTotal();
-        });
+        }
+        
+        // 3. 所有檢查都過了，執行計算
+        calculateTotal();
     });
+});
 
     // --- 【核心邏輯 B：時段勾選監聽】 ---
     document.querySelectorAll('input[name="time"]').forEach(tb => {
