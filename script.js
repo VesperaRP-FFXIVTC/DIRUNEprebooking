@@ -10,26 +10,51 @@ let cachedData = null;
 // 2. 自動計算金額邏輯
 // ==========================================
 function calculateTotal() {
-    const catsChecked = document.querySelectorAll('input[name="cats"]:checked').length;
-    const periodsChecked = document.querySelectorAll('input[name="time"]:checked').length;
+    // 1. 取得勾選的數量與對象
+    const catsCheckedInputs = document.querySelectorAll('input[name="cats"]:checked');
+    const catsCheckedCount = catsCheckedInputs.length;
+    const periodsCheckedCount = document.querySelectorAll('input[name="time"]:checked').length;
     
-    // 計算總額 (貓咪數 * 時段數 * 50,000)
-    const total = catsChecked * periodsChecked * pricePerCatPerPeriod;
+    // 2. 設定金額基準
+    const pricePerCatPerPeriod = 50000; // 基礎指名費
+    const sketchExtraFee = 100000;      // 維梧爾加價 (10萬)
+    
+    let total = 0;
+    let hasVoguer = false;
+
+    // 3. 核心計算邏輯：逐一檢查選中的貓咪
+    catsCheckedInputs.forEach(input => {
+        if (input.value === "維梧爾") {
+            hasVoguer = true;
+            // 維梧爾：(5萬基礎 + 10萬速寫) * 時段數
+            total += (pricePerCatPerPeriod + sketchExtraFee) * periodsCheckedCount;
+        } else {
+            // 其他貓咪：5萬 * 時段數
+            total += pricePerCatPerPeriod * periodsCheckedCount;
+        }
+    });
+
+    // 4. 處理「維梧爾專屬」收據顯示 (不影響備註)
+    const sketchRow = document.getElementById('sketch-service-row');
+    if (sketchRow) {
+        sketchRow.style.display = hasVoguer ? 'block' : 'none';
+    }
+
+    // 5. 更新所有金額顯示
     const formattedTotal = total.toLocaleString();
 
-    // 更新「上方」預計費用 (id="top-total")
     const topTotal = document.getElementById('top-total');
     if (topTotal) topTotal.innerText = formattedTotal;
 
-    // 更新「下方」收據框 (display-periods, display-cats, total-amount)
-    if (document.getElementById('display-periods')) 
-        document.getElementById('display-periods').innerText = periodsChecked;
-    
-    if (document.getElementById('display-cats')) 
-        document.getElementById('display-cats').innerText = catsChecked;
-    
-    if (document.getElementById('total-amount')) 
+    if (document.getElementById('display-periods')) {
+        document.getElementById('display-periods').innerText = periodsCheckedCount;
+    }
+    if (document.getElementById('display-cats')) {
+        document.getElementById('display-cats').innerText = catsCheckedCount;
+    }
+    if (document.getElementById('total-amount')) {
         document.getElementById('total-amount').innerText = formattedTotal;
+    }
 }
 
 // ==========================================
@@ -193,17 +218,68 @@ function init() {
         });
     });
 
-    // 監聽貓咪 (維持原樣)
+   // 處理貓咪勾選監聽
     document.querySelectorAll('input[name="cats"]').forEach(cb => {
         cb.addEventListener('change', function() {
-            const checkedCount = document.querySelectorAll('input[name="cats"]:checked').length;
-            if (checkedCount > maxCats) {
-                this.checked = false;
-                alert('抱歉，每筆預約最多只能指名 3 位貓咪喔！');
+            const checkedCats = Array.from(document.querySelectorAll('input[name="cats"]:checked'));
+            const selectedTimes = document.querySelectorAll('input[name="time"]:checked');
+
+            if (this.checked) {
+                // --- 【核心邏輯 A：維梧爾的排他性】 ---
+                if (this.value === "維梧爾") {
+                    // 如果選了維梧爾，就不能選其他貓
+                    if (checkedCats.length > 1) {
+                        this.checked = false;
+                        alert('【預約限制】\n由於「維梧爾」提供專屬速寫服務，指名他時無法同時指名其他貓咪。');
+                        return;
+                    }
+                    // 如果選了維梧爾，檢查時段是否超過一個
+                    if (selectedTimes.length > 1) {
+                        this.checked = false;
+                        alert('【預約限制】\n「維梧爾」的速寫預約僅限選擇「一個」時段。');
+                        return;
+                    }
+                } else {
+                    // 如果選的是其他貓，但目前已經勾選了維梧爾
+                    const hasVoguer = checkedCats.some(cat => cat.value === "維梧爾");
+                    if (hasVoguer) {
+                        this.checked = false;
+                        alert('【預約限制】\n當前已選擇「維梧爾」，無法再指名其他貓咪。');
+                        return;
+                    }
+                }
+
+                // 原本的 3 隻貓限制
+                if (checkedCats.length > 3) {
+                    this.checked = false;
+                    alert('抱歉，每筆預約最多只能指名 3 位貓咪喔！');
+                    return;
+                }
             }
             calculateTotal();
         });
     });
+
+    // --- 【核心邏輯 B：時段勾選監聽】 ---
+    document.querySelectorAll('input[name="time"]').forEach(tb => {
+    tb.addEventListener('change', function() {
+        const checkedCats = Array.from(document.querySelectorAll('input[name="cats"]:checked'));
+        const hasVoguer = checkedCats.some(cat => cat.value === "維梧爾");
+        const selectedTimes = document.querySelectorAll('input[name="time"]:checked');
+
+        // 如果點擊後發現不符合維梧爾的限制
+        if (this.checked && hasVoguer && selectedTimes.length > 1) {
+            this.checked = false; // 強制取消勾選
+            alert('【預約限制】\n「維梧爾」的速寫預約僅限選擇「一個」時段。');
+            
+            // --- 關鍵：取消勾選後，必須再跑一次計算來修正金額 ---
+            calculateTotal(); 
+            return; 
+        }
+            calculateTotal();
+        });
+    });
+
 
     const form = document.getElementById('bookingForm');
     if (form) { form.addEventListener('submit', handleFormSubmit); }
