@@ -17,7 +17,7 @@ function calculateTotal() {
     
     // 2. 設定金額基準
     const pricePerCatPerPeriod = 50000; // 基礎指名費
-    const sketchExtraFee = 100000;      // 維梧爾加價 (10萬)
+    const sketchExtraFee = 150000;      // 維梧爾加價 (15萬)
     
     let total = 0;
     let hasVoguer = false;
@@ -245,7 +245,7 @@ function init() {
                 }
                 
                 // --- 2. 通過檢查後，立刻跳出提示彈窗 ---
-                alert('【專屬服務提示】\n您已選擇「維梧爾」。\n費用將包含：指名費 50,000 + 速寫服務 100,000 = 150,000 Gil / 每時段。');
+                alert('【專屬服務提示】\n您已選擇「維梧爾」。\n費用將包含：指名費 50,000 + 速寫服務 150,000 = 200,000 Gil / 每時段。');
 
             } else {
                 // 如果選的是其他貓，檢查目前是否已選了維梧爾
